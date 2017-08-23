@@ -1,5 +1,5 @@
 package models
 
-type Id struct{
-	Id int
+type Session struct{
+	Id string
 }

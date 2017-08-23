@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"crypto/rand"
+	"encoding/base64"
 )
 
 func InsertUser(login, password string) error{
@@ -16,11 +18,10 @@ func InsertUser(login, password string) error{
 	if err != nil {
 		fmt.Println("insert User",err)
 	}
-
 	return err
 }
 
-func CheckUser(login,password string) (int,error){
+func CheckUser(login,password string) (string,error){
 	rows, err := db.Query("SELECT id,password FROM users where login = $1",login) //id
 	defer  rows.Close()
 	if rows.Next()==false {
@@ -32,7 +33,21 @@ func CheckUser(login,password string) (int,error){
 	if checkPasswordHash(password,hash) == false{
 		err= errors.New("not found")
 	}
-	return id,err
+	return createSession(id),err
+}
+
+func createSession(id int) string{
+	sessionID, err :=generateRandomString(32)
+	if err !=nil{
+		fmt.Println("create sessions fail", err)
+		return ""
+	}
+	_, err = db.Exec("INSERT INTO sessions (userId,sessionId) VALUES ($1, $2)",
+		id,sessionID)
+	if err != nil {
+		fmt.Println("insert session",err)
+	}
+	return sessionID
 }
 
 
@@ -44,5 +59,20 @@ func hashPassword(password string) (string, error) {
 func checkPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func generateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func generateRandomString(s int) (string, error) {
+	b, err := generateRandomBytes(s)
+	return base64.URLEncoding.EncodeToString(b), err
 }
 

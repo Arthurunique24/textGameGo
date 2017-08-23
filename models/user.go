@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"../DAO"
-	"../session"
 )
 type User struct {
 	Login string
@@ -38,13 +37,10 @@ func(u *User) Check(body io.ReadCloser) (int, interface{}){
 		fmt.Println("parse json fail", err)
 		return http.StatusBadRequest,nil
 	}
-	var id int
-	id,err=DAO.CheckUser(u.Login,u.Password)
+	var sessionId string
+	sessionId,err=DAO.CheckUser(u.Login,u.Password)
 	if  err != nil{
 		return http.StatusNotFound,nil
 	}
-	if session.CheckId(id)==false {
-		session.Create(id)
-	}
-	return http.StatusOK,Id{Id:id}
+	return http.StatusOK,Session{Id:sessionId}
 }

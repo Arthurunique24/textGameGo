@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"io"
 	"../DAO"
-	"../session"
 )
 
 type UsersData struct{
@@ -19,9 +18,6 @@ func (ud *UsersData) Update(body io.ReadCloser) int{
 	if err !=nil {
 		fmt.Println("parse json fail" , err)
 		return http.StatusBadRequest
-	}
-	if session.CheckId(ud.UserId)==false {
-		return http.StatusUnauthorized
 	}
 	if DAO.UpdateUsersData(ud.UserId, ud.Rating,ud.CountGames)!=nil {
 		return http.StatusNotFound
