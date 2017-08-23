@@ -3,7 +3,8 @@ package handlers
 import (
 	"../models"
 	"net/http"
-	_ "github.com/lib/pq"
+	"encoding/json"
+	"fmt"
 )
 
 func SignUp(rw http.ResponseWriter, req *http.Request) {
@@ -15,5 +16,13 @@ func SignUp(rw http.ResponseWriter, req *http.Request) {
 
 func SignIn(rw http.ResponseWriter, req *http.Request) {
 	var u models.User
-	rw.WriteHeader(u.Check(req.Body))
+	status,response := u.Check(req.Body)
+	rw.WriteHeader(status)
+	if response != nil {
+		rw.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(rw).Encode(response)
+		if err != nil {
+			fmt.Println("incorrect format response", err)
+		}
+	}
 }

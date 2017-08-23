@@ -2,42 +2,49 @@ package models
 
 import (
 	"io"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"../DAO"
+	"../session"
 )
 type User struct {
 	Login string
 	Password string
 }
 
-func (u *User) Parse(body io.ReadCloser) error{
+/*func (u *User) Parse(body io.ReadCloser) error{
 	decoder :=json.NewDecoder(body)
 	defer body.Close()
 	err:= decoder.Decode(&u)
 	return err
-}
 
-func (u *User) Insert(body io.ReadCloser) int{
-	if u.Parse(body) !=nil {
-		fmt.Println("parse json fail")
+}*/
+
+func (u *User) Insert(body io.ReadCloser) (int){
+	//err:=u.Parse(body)
+	 err :=Parse(u,body)
+	if err !=nil {
+		fmt.Println("parse json fail" , err) //err
 		return http.StatusBadRequest
 	}
-	fmt.Println("user insert")
 	if DAO.InsertUser(u.Login, u.Password)!=nil {
 		return http.StatusConflict
 	}
 	return http.StatusOK
 }
-func(u *User) Check(body io.ReadCloser) int{
-	if u.Parse(body) !=nil {
-		fmt.Println("parse json fail")
-		return http.StatusBadRequest
+func(u *User) Check(body io.ReadCloser) (int, interface{}){
+	err := Parse(u,body)
+	if err !=nil {
+		fmt.Println("parse json fail", err)
+		return http.StatusBadRequest,nil
 	}
-
-	if  DAO.CheckUser(u.Login,u.Password)!=nil{
-		return http.StatusNotFound
+	var id int
+	id,err=DAO.CheckUser(u.Login,u.Password)
+	if  err != nil{
+		return http.StatusNotFound,nil
 	}
-	return http.StatusOK
+	if session.CheckId(id)==false {
+		session.Create(id)
+	}
+	return http.StatusOK,Id{Id:id}
 }

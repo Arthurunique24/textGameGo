@@ -16,7 +16,7 @@ type gameInit struct {
 }
 
 const MAP_SIZE = 11
-
+//gofmt
 
 func (gi *gameInit) createMatrix(){
 	gi.matrix = [MAP_SIZE][MAP_SIZE]int {

@@ -8,7 +8,6 @@ import (
 
 
 func main() {
-
 	DAO.Connect()
 	log.Fatal(server.RunHTTPServer(":8080"))
 	//http.HandleFunc("/signup", handlers.SignUp)
