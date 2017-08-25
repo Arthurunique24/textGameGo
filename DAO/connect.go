@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
+	_ "github.com/lib/pq"
 )
 
 /*const (
@@ -41,7 +42,7 @@ func Connect() {
 	var err error
 	db, err = sql.Open("postgres", dbinfo)
 	if err != nil {
-		fmt.Println("fail")
+		fmt.Println("fail DB connect", err)
 		panic(err)
 	}
 }

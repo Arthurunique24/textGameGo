@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"../DAO"
-	"github.com/ChernovAndrey/textGameGo/game/graph"
+	"../game/graph"
 )
 
 const mapSize = 11

@@ -33,8 +33,5 @@ func init(){
 func main() {
 	DAO.Connect()
 	log.Fatal(server.RunHTTPServer(config.Port))
-	//http.HandleFunc("/signup", handlers.SignUp)
-	//http.HandleFunc("/signin", handlers.SignIn)
-	//log.Fatal(http.ListenAndServe(":8082", nil))
 	defer DAO.Disconnect()
 }
