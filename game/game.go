@@ -3,8 +3,8 @@ package game
 import (
 	"fmt"
 	"log"
-	"../game/graph"
 
+	"../game/graph"
 )
 
 type gameSession struct {

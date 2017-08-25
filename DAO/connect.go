@@ -2,7 +2,6 @@ package DAO
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
 	"fmt"
 	"path/filepath"
 	"io/ioutil"
@@ -11,7 +10,7 @@ import (
 
 /*const (
 	DB_USER     = "postgres"
-	DB_PASSWORD = "7680928160"
+	DB_PASSWORD = "1234"
 	DB_NAME     = "textgame"
 )*/
 type ConfigParameter struct {
@@ -22,6 +21,7 @@ type ConfigParameter struct {
 }
 var config ConfigParameter
 
+<<<<<<< HEAD
 func init() {
 	filename, _ := filepath.Abs("./config/database.yml")
 	yamlFile, err := ioutil.ReadFile(filename)
@@ -34,6 +34,8 @@ func init() {
 		}
 }
 
+=======
+>>>>>>> 2b3303d5f064cbe679ee0347873d756f0db1493b
 var db *sql.DB
 
 func Connect() {
@@ -41,12 +43,12 @@ func Connect() {
 		config.DB_USER, config.DB_PASSWORD, config.DB_NAME)
 	var err error
 	db, err = sql.Open("postgres", dbinfo)
-	if(err!=nil){
+	if err != nil {
 		fmt.Println("fail")
 		panic(err)
 	}
 }
 
 func Disconnect() {
-	 db.Close()
+	db.Close()
 }
