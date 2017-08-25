@@ -12,9 +12,13 @@ type gameSession struct {
 	} `json:"body,omitempty"`
 }
 
-type AnswerStart struct {
+type Answer struct {
 	Id string
 	PossibleSteps []int
+	Finished bool
 }
 
-
+type RequestStep struct {
+	Id string
+	Step int
+}

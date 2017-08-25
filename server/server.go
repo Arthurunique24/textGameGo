@@ -1,18 +1,11 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
+	"../handlers"
 	"net/http"
-	"time"
-
-	"github.com/ChernovAndrey/textGameGo/game"
-	"github.com/ChernovAndrey/textGameGo/handlers"
-	"github.com/ChernovAndrey/textGameGo/server/workers"
 )
 
-type networkData struct {
+/*type networkData struct {
 	Status string `json:"status,omitempty"`
 	Body   struct {
 		Turn    int   `json:"turn,omitempty"`
@@ -75,12 +68,13 @@ func (session *gameSession) parse(body io.ReadCloser) error {
 	err := decoder.Decode(&session)
 	fmt.Println(session.Status)
 	return err
-}
+}*/
 
 func RunHTTPServer(addr string) error {
 	http.HandleFunc("/updateUData", handlers.UpdateUsersData)
 	http.HandleFunc("/signup", handlers.SignUp)
 	http.HandleFunc("/signin", handlers.SignIn)
 	http.HandleFunc("/start", handlers.Start)
+	http.HandleFunc("/step", handlers.Step)
 	return http.ListenAndServe(addr, nil)
 }

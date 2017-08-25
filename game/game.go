@@ -3,8 +3,8 @@ package game
 import (
 	"fmt"
 	"log"
+	"../game/graph"
 
-	"github.com/ChernovAndrey/textGameGo/game/graph"
 )
 
 type gameSession struct {

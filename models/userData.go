@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/ChernovAndrey/textGameGo/DAO"
+	"../DAO"
 )
 
 type UsersData struct {

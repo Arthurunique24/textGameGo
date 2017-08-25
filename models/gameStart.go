@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"sync"
 	"time"
+	"../DAO"
 
-	"github.com/ChernovAndrey/textGameGo/DAO"
 )
 
 const mapSize = 11
@@ -26,20 +26,21 @@ type Param struct {
 	HasKey   bool
 	CurPos   int
 	Matrix   [mapSize][mapSize]int
+	StepsCount int
 }
 
-func GameStart(body io.ReadCloser) (AnswerStart, error) {
+func GameStart(body io.ReadCloser) (Answer, error) {
 	session := new(SessionId)
 	Parse(session, body)
 	if DAO.CheckId(session.Id) == false {
 		fmt.Println("ddddd")
-		return AnswerStart{}, errors.New("incorrect SessionId")
+		return Answer{}, errors.New("incorrect SessionId")
 	}
 	p := NewParam()
 	mu.Lock()
 	params[session.Id] = p
 	defer mu.Unlock()
-	return AnswerStart{Id: session.Id, PossibleSteps: p.Answer()}, nil
+	return Answer{Id: session.Id, PossibleSteps: p.Answer()}, nil
 }
 
 func (p *Param) Answer() []int {
