@@ -21,7 +21,6 @@ type ConfigParameter struct {
 }
 var config ConfigParameter
 
-<<<<<<< HEAD
 func init() {
 	filename, _ := filepath.Abs("./config/database.yml")
 	yamlFile, err := ioutil.ReadFile(filename)
@@ -34,8 +33,6 @@ func init() {
 		}
 }
 
-=======
->>>>>>> 2b3303d5f064cbe679ee0347873d756f0db1493b
 var db *sql.DB
 
 func Connect() {
