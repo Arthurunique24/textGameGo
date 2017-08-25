@@ -1,50 +1,48 @@
 package models
 
 import (
-	"fmt"
-	"time"
-	"math/rand"
-	"../DAO"
-	"io"
 	"errors"
+	"fmt"
+	"io"
+	"math/rand"
 	"sync"
+	"time"
+
+	"github.com/ChernovAndrey/textGameGo/DAO"
 )
 
 const mapSize = 11
 
-
 var (
-	mu sync.Mutex
+	mu     sync.Mutex
 	params = make(map[string]*Param)
 )
 
 type Param struct {
-	Id string
+	Id       string
 	StartPos int
-	EndPos int
-	KeyPos int
-	HasKey bool
-	CurPos int
-	Matrix [mapSize][mapSize] int
+	EndPos   int
+	KeyPos   int
+	HasKey   bool
+	CurPos   int
+	Matrix   [mapSize][mapSize]int
 }
 
-
-func GameStart(body io.ReadCloser) (AnswerStart,error){
+func GameStart(body io.ReadCloser) (AnswerStart, error) {
 	session := new(SessionId)
-	Parse(session,body)
+	Parse(session, body)
 	if DAO.CheckId(session.Id) == false {
 		fmt.Println("ddddd")
-		return AnswerStart{},errors.New("incorrect SessionId")
+		return AnswerStart{}, errors.New("incorrect SessionId")
 	}
-	p:=NewParam()
+	p := NewParam()
 	mu.Lock()
-	params[session.Id]=p
+	params[session.Id] = p
 	defer mu.Unlock()
-	return AnswerStart{Id:session.Id, PossibleSteps:p.Answer()}, nil
+	return AnswerStart{Id: session.Id, PossibleSteps: p.Answer()}, nil
 }
 
-
-func (p *Param) Answer() ([]int){
+func (p *Param) Answer() []int {
 	var states []int
 	for j := 0; j < mapSize; j++ {
 		if p.Matrix[p.CurPos][j] == 1 {
@@ -55,11 +53,9 @@ func (p *Param) Answer() ([]int){
 	return states
 }
 
-
-
-func (p *Param) newMatrix(){
-	p.Matrix = [mapSize][mapSize]int {
-		{0, 1, 0, 0, 0 ,0, 0, 0, 0, 0, 0},
+func (p *Param) newMatrix() {
+	p.Matrix = [mapSize][mapSize]int{
+		{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0},
 		{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
@@ -75,9 +71,9 @@ func (p *Param) newMatrix(){
 func NewParam() *Param {
 	p := new(Param)
 	p.newMatrix()
-	p.StartPos = generateRandPosition(mapSize, []int {})
-	p.EndPos = generateRandPosition(mapSize, []int {p.StartPos})
-	p.KeyPos = generateRandPosition(mapSize, []int {p.StartPos, p.EndPos})
+	p.StartPos = generateRandPosition(mapSize, []int{})
+	p.EndPos = generateRandPosition(mapSize, []int{p.StartPos})
+	p.KeyPos = generateRandPosition(mapSize, []int{p.StartPos, p.EndPos})
 	p.HasKey = false
 	p.CurPos = p.StartPos
 
@@ -86,7 +82,7 @@ func NewParam() *Param {
 	return p
 }
 
-func generateRandPosition(max int, exclusions []int) int{
+func generateRandPosition(max int, exclusions []int) int {
 	rand.Seed(time.Now().UTC().UnixNano())
 	placed := false
 	pos := rand.Intn(max)

@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"net/http"
-	"../server/workers"
+
 	"encoding/json"
-	"time"
 	"fmt"
-	"../models"
+	"time"
+
+	"github.com/ChernovAndrey/textGameGo/models"
+	"github.com/ChernovAndrey/textGameGo/server/workers"
 )
 
 var wp *workers.Pool = workers.NewPool(5)
@@ -20,8 +22,8 @@ const requestWaitInQueueTimeout = time.Second
 func Start(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println("11111")
 	_, err := wp.AddTaskSyncTimed(func() interface{} {
-		res,err:=models.GameStart(req.Body)
-		if err != nil{
+		res, err := models.GameStart(req.Body)
+		if err != nil {
 			fmt.Println(err)
 			rw.WriteHeader(http.StatusNotFound)
 			return err
@@ -40,4 +42,3 @@ func Start(rw http.ResponseWriter, req *http.Request) {
 		fmt.Println("Start", err)
 	}
 }
-
