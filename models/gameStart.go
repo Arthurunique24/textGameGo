@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
+	"log"
 	"sync"
-	"time"
-	"../DAO"
 
+	"../DAO"
+	"github.com/ChernovAndrey/textGameGo/game/graph"
 )
 
 const mapSize = 11
@@ -19,14 +19,13 @@ var (
 )
 
 type Param struct {
-	Id       string
-	StartPos int
-	EndPos   int
-	KeyPos   int
-	HasKey   bool
-	CurPos   int
-	Matrix   [mapSize][mapSize]int
-	StepsCount int
+	items      []int
+	curPos     int
+	gameMap    [][]int
+	startPos   int
+	endPos     int
+	stepsCount int
+	started    bool
 }
 
 func GameStart(body io.ReadCloser) (Answer, error) {
@@ -36,67 +35,62 @@ func GameStart(body io.ReadCloser) (Answer, error) {
 		fmt.Println("ddddd")
 		return Answer{}, errors.New("incorrect SessionId")
 	}
-	p := NewParam()
+	p := params[session.Id]
+	if p != nil && p.started {
+		fmt.Println("game already started")
+		return Answer{Id: session.Id, PossibleSteps: p.answer(), Message: "Игра уже началась"}, nil
+	}
+	p = NewParam()
 	mu.Lock()
 	params[session.Id] = p
 	defer mu.Unlock()
-	return Answer{Id: session.Id, PossibleSteps: p.Answer()}, nil
+	return Answer{Id: session.Id, PossibleSteps: p.answer(), Message: "Игра началась"}, nil
 }
 
-func (p *Param) Answer() []int {
+func (p *Param) answer() []int {
 	var states []int
 	for j := 0; j < mapSize; j++ {
-		if p.Matrix[p.CurPos][j] == 1 {
-			fmt.Println(j)
-			states = append(states, j)
+		if p.gameMap[p.curPos][j] == 1 && p.curPos != j {
+			states = append(states, j+1)
 		}
 	}
+	log.Printf("Возможные переходы: %v\n", states)
+
 	return states
 }
 
-func (p *Param) newMatrix() {
-	p.Matrix = [mapSize][mapSize]int{
-		{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0},
-		{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
-		{0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0},
-		{0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1},
-		{0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0},
-		{0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0},
-		{0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
-		{0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
-	}
-}
 func NewParam() *Param {
 	p := new(Param)
-	p.newMatrix()
-	p.StartPos = generateRandPosition(mapSize, []int{})
-	p.EndPos = generateRandPosition(mapSize, []int{p.StartPos})
-	p.KeyPos = generateRandPosition(mapSize, []int{p.StartPos, p.EndPos})
-	p.HasKey = false
-	p.CurPos = p.StartPos
-
-	fmt.Println("Key:", p.KeyPos, "Start:", p.StartPos, "End:", p.EndPos)
-
-	return p
-}
-
-func generateRandPosition(max int, exclusions []int) int {
-	rand.Seed(time.Now().UTC().UnixNano())
-	placed := false
-	pos := rand.Intn(max)
-
-	if len(exclusions) == 0 {
-		return pos
+	p.gameMap = graph.GenerateGraphWithPlacedItems(mapSize)
+	log.Println("Сгенерированная карта")
+	for i := 0; i < mapSize; i++ {
+		for j := 0; j < mapSize; j++ {
+			fmt.Printf("%2d ", p.gameMap[i][j])
+		}
+		fmt.Println()
 	}
 
-	for !placed {
-		for j := 0; j < len(exclusions) && !placed; j++ {
-			pos = rand.Intn(max)
-			placed = pos != exclusions[j]
+	itemsCount := 0
+	for i := 0; i < mapSize; i++ {
+		if p.gameMap[i][i] > itemsCount {
+			itemsCount = p.gameMap[i][i]
 		}
 	}
-	return pos
+	p.items = make([]int, itemsCount)
+	for i := 0; i < mapSize; i++ {
+		if p.gameMap[i][i] == graph.StartStateFlag {
+			p.startPos = i
+		} else if p.gameMap[i][i] == graph.EndStateFlag {
+			p.endPos = i
+		} else if p.gameMap[i][i] > 0 {
+			p.items[p.gameMap[i][i]-1] = i + 1
+		}
+	}
+	fmt.Printf("Положение предметов: %v, начальная позиция: %d, конечная позиция; %d\n", p.items, p.startPos+1, p.endPos+1)
+
+	p.stepsCount = 0
+	p.started = true
+	p.curPos = p.startPos
+
+	return p
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 )
 
 func GameStep(body io.ReadCloser) (Answer, error) {
@@ -14,7 +15,7 @@ func GameStep(body io.ReadCloser) (Answer, error) {
 		fmt.Println("GameStep not SignIn")
 		return Answer{}, errors.New("not Authorized")
 	}
-	correct, finished, _, steps := p.Turn(req.Step)
+	correct, finished, message, steps := p.turn(req.Step)
 	fmt.Println("correct", correct)
 	if finished == true {
 		delete(params, req.Id)
@@ -23,58 +24,59 @@ func GameStep(body io.ReadCloser) (Answer, error) {
 		params[req.Id] = p
 		defer mu.Unlock()
 	}
-	return Answer{Id: req.Id, PossibleSteps: steps, Finished: finished}, nil
+	return Answer{Id: req.Id, PossibleSteps: steps, Finished: finished, Message: message}, nil
 }
 
-func (p *Param) Turn(newState int) (bool, bool, string, []int) {
+func (p *Param) turn(newState int) (bool, bool, string, []int) {
+	log.Printf("Попытка хода в %d", newState)
+	if newState < 1 || newState > len(p.gameMap) {
+		return false, false, "Некорректный ход", p.answer()
+	}
+	if !p.started {
+		return false, false, "Игра не началась", []int{}
+	}
 	correct, finished, message := p.update(newState)
-	return correct, finished, message, p.Answer()
+	return correct, finished, message, p.answer()
 }
 
 func (p *Param) update(newState int) (bool, bool, string) { // correct, finished, message
-	possibleStates := p.Answer()
+	possibleStates := p.answer()
 	correct := false
-	for i := 0; i < len(possibleStates); i++ {
-		//correct = possibleStates[i] != newState
-		if possibleStates[i] == newState {
-			correct = true
-			break
-		}
+	for i := 0; i < len(possibleStates) && !correct; i++ {
+		correct = possibleStates[i] == newState
 	}
 	if !correct {
 		return false, false, "Некорректный ход"
 	}
-	p.StepsCount++
-	p.CurPos = newState
-	item := p.Matrix[p.CurPos][p.CurPos]
-	//	item := gs.gameMap[gs.curPos][gs.curPos]
-	//	itemFound := false
-	//	message := ""
-	/*	if item == 1 {
-				itemFound = true
-				message = fmt.Sprintf("Сделано ходов: %d, Найден предмет %d", p.StepsCount, item)
-		//		gs.items[item-1] = 1
-			} else if item > 1 && gs.items[item-2] == 1 {
-				itemFound = true
-				message = fmt.Sprintf("Сделано ходов: %d, Использован предмет %d. Найден предмет %d", p.StepsCount, item-1, item)
-		//		gs.items[item-2] = 1
-			}
-			if itemFound {
-				p.Matrix[p.CurPos][p.CurPos] = 0
-				return true, false, message
-			}*/
-	/*	if p.CurPos == p.EndPos && gs.items[len(gs.items)-1] == 1 {
-		//gs.Started = false
-		return true, true, fmt.Sprintf("Поздрвляем, вы выбрались за %d ходов", p.StepsCount)
-	}*/
-	if p.CurPos == p.EndPos && p.HasKey {
-		//gs.Started = false
-		return true, true, fmt.Sprintf("Поздрвляем, вы выбрались за %d ходов", p.StepsCount)
+	p.stepsCount++
+	p.curPos = newState - 1
+	item := p.gameMap[p.curPos][p.curPos]
+	itemFound := false
+	message := ""
+	if item == 1 {
+		itemFound = true
+		message = fmt.Sprintf("Сделано ходов: %d, Получен предмет %d", p.stepsCount, item)
+		p.items[item-1] = 1
+	} else if item > 1 {
+		if p.items[item-2] == 1 {
+			itemFound = true
+			message = fmt.Sprintf("Сделано ходов: %d, Использован предмет %d. Получен предмет %d", p.stepsCount, item-1, item)
+			p.items[item-1] = 1
+		} else {
+			return true, false, fmt.Sprintf("Сделано ходов: %d, Найден предмет %d. Для его получения необходимо использовать предмет %d", p.stepsCount, item, item-1)
+		}
 	}
-	if p.CurPos == p.KeyPos {
-		p.KeyPos = -1
-		p.HasKey = true
-		return true, false, fmt.Sprintf("Вы подобрали ключ")
+	if itemFound {
+		p.gameMap[p.curPos][p.curPos] = 0
+		return true, false, message
 	}
-	return true, false, fmt.Sprintf("Сделано ходов: %d", item)
+	if p.curPos == p.endPos {
+		if p.items[len(p.items)-1] == 1 {
+			p.started = false
+			return true, true, fmt.Sprintf("Поздравляем, вы выбрались за %d ходов", p.stepsCount)
+		} else {
+			return true, false, fmt.Sprintf("Сделано ходов: %d, Найден выход, для открытия которого нужно использовать предмет %d", p.stepsCount, len(p.items))
+		}
+	}
+	return true, false, fmt.Sprintf("Сделано ходов: %d", p.stepsCount)
 }
