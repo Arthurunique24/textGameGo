@@ -11,13 +11,6 @@ type User struct {
 	Password string
 }
 
-/*func (u *User) Parse(body io.ReadCloser) error{
-	decoder :=json.NewDecoder(body)
-	defer body.Close()
-	err:= decoder.Decode(&u)
-	return err
-
-}*/
 
 func (u *User) Insert(body io.ReadCloser) (int){
 	//err:=u.Parse(body)
@@ -42,5 +35,5 @@ func(u *User) Check(body io.ReadCloser) (int, interface{}){
 	if  err != nil{
 		return http.StatusNotFound,nil
 	}
-	return http.StatusOK,Session{Id:sessionId}
+	return http.StatusOK,SessionId{Id:sessionId}
 }

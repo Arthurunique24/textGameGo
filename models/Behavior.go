@@ -5,9 +5,8 @@ import (
 	"io"
 )
 
-type Parsing interface {}
 
-func Parse(p Parsing, body io.ReadCloser) error{
+func Parse(p interface{}, body io.ReadCloser) error{
 	decoder :=json.NewDecoder(body)
 	defer body.Close()
 	err:= decoder.Decode(&p)

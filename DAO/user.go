@@ -42,7 +42,8 @@ func createSession(id int) string{
 		fmt.Println("create sessions fail", err)
 		return ""
 	}
-	_, err = db.Exec("INSERT INTO sessions (userId,sessionId) VALUES ($1, $2)",
+	_, err = db.Exec("INSERT INTO sessions (userId,sessionId) VALUES ($1, $2) ON CONFLICT (userId) DO UPDATE "+
+		"SET sessionId = excluded.SessionId;",
 		id,sessionID)
 	if err != nil {
 		fmt.Println("insert session",err)
