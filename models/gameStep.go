@@ -63,9 +63,7 @@ func (p *Param) update(newState int) (bool, bool, string) { // correct, finished
 	if p.killerPos == p.curPos {
 		return true, true, fmt.Sprintf("Сделано ходов: %d, К сожалению, вас нашёл маньяк. Игра окончена", p.stepsCount)
 	}
-	distanceToKiller := len(graph.FindNearestPath(p.gameMap, p.curPos, p.killerPos))
-	tip := p.getTipAboutKillerPresence(distanceToKiller)
-	p.distanceToKiller = distanceToKiller
+	tip := p.getTipAboutKillerPresence()
 	item := p.gameMap[p.curPos][p.curPos]
 	itemFound := false
 	message := ""
@@ -97,17 +95,20 @@ func (p *Param) update(newState int) (bool, bool, string) { // correct, finished
 	return true, false, fmt.Sprintf("Сделано ходов: %d. %s", p.stepsCount, tip)
 }
 
-func (p *Param) getTipAboutKillerPresence(distanceToKiller int) string {
+func (p *Param) getTipAboutKillerPresence() string {
+	path := graph.FindNearestPath(p.gameMap, p.curPos, p.killerPos)
+	distanceToKiller := len(path)
 	tip := "Вокруг царит подозрительная тишина..."
 	if p.distanceToKiller >= distanceToKiller {
 		if distanceToKiller >= 1 && distanceToKiller <= 2 {
-			tip = "У меня такое ощущение, что маньяк находится совсем близко за ближайшим поворотом"
+			tip = fmt.Sprintf("Звуки доносятся из %d. Это маньяк! Надо бежать...", path[0]+1)
 		} else if distanceToKiller >= 3 && distanceToKiller <= 4 {
 			tip = "Что это было? Кажется, маньяк уже близко. Надо торопиться"
 		}
 	} else {
 		tip = "Кажется, маньяк отстал. Но не стоит расслабляться. Нужно продолжать искать выход"
 	}
+	p.distanceToKiller = distanceToKiller
 	return tip
 }
 
