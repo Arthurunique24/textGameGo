@@ -1,13 +1,23 @@
 package DAO
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
+//var DurationSession  = time.
 func CheckId(id string) (bool){
-	rows, err := db.Query("SELECT userId FROM sessions where sessionid = $1",id)
+	rows, err := db.Query("SELECT createDate FROM sessions where sessionid = $1",id)
 	defer  rows.Close()
 	if err !=nil {
 		fmt.Println(err)
+		return false
 	}
-	return (rows.Next()) && (err==nil)
-
+	if rows.Next() == false {
+		return false
+	}
+	t := time.Now()
+	rows.Scan(&t)
+	fmt.Println(t)
+	return true
 }
