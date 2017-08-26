@@ -11,7 +11,7 @@ import (
 	"github.com/ChernovAndrey/textGameGo/models/graph"
 )
 
-const mapSize = 10
+const mapSize = 20
 
 var (
 	mu     sync.Mutex
@@ -28,6 +28,7 @@ type Param struct {
 	started           bool
 	minimalStepsCount int
 	killerPos         int
+	distanceToKiller  int
 }
 
 func GameStart(body io.ReadCloser) (Answer, error) {
@@ -40,7 +41,7 @@ func GameStart(body io.ReadCloser) (Answer, error) {
 	p := params[session.Id]
 	if p != nil && p.started {
 		fmt.Println("game already started")
-		return Answer{Id: session.Id, PossibleSteps: p.answer(p.curPos), Message: "Игра уже началась"}, nil
+		return Answer{Id: session.Id, PossibleSteps: p.answer(p.curPos), Message: "Игра уже началась."}, nil
 	}
 	p = NewParam()
 	mu.Lock()
@@ -104,6 +105,7 @@ func NewParam() *Param {
 	fmt.Println("")
 
 	p.killerPos = items[0] - 1
+	p.distanceToKiller = 100 // большое значение, которое заведомо проходит проверку
 	fmt.Printf("Положение маньяка - %d\n", p.killerPos+1)
 
 	return p

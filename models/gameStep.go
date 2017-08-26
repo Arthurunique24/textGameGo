@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"math/rand"
+
+	"github.com/ChernovAndrey/textGameGo/models/graph"
 )
 
 func GameStep(body io.ReadCloser) (Answer, error) {
@@ -61,20 +63,23 @@ func (p *Param) update(newState int) (bool, bool, string) { // correct, finished
 	if p.killerPos == p.curPos {
 		return true, true, fmt.Sprintf("Сделано ходов: %d, К сожалению, вас нашёл маньяк. Игра окончена", p.stepsCount)
 	}
+	distanceToKiller := len(graph.FindNearestPath(p.gameMap, p.curPos, p.killerPos))
+	tip := p.getTipAboutKillerPresence(distanceToKiller)
+	p.distanceToKiller = distanceToKiller
 	item := p.gameMap[p.curPos][p.curPos]
 	itemFound := false
 	message := ""
 	if item == 1 {
 		itemFound = true
-		message = fmt.Sprintf("Сделано ходов: %d, Получен предмет %d", p.stepsCount, item)
+		message = fmt.Sprintf("Сделано ходов: %d, Получен предмет %d. %s", p.stepsCount, item, tip)
 		p.items[item-1] = 1
 	} else if item > 1 {
 		if p.items[item-2] == 1 {
 			itemFound = true
-			message = fmt.Sprintf("Сделано ходов: %d, Использован предмет %d. Получен предмет %d", p.stepsCount, item-1, item)
+			message = fmt.Sprintf("Сделано ходов: %d, Использован предмет %d. Получен предмет %d. %s", p.stepsCount, item-1, item, tip)
 			p.items[item-1] = 1
 		} else {
-			return true, false, fmt.Sprintf("Сделано ходов: %d, Найден предмет %d. Для его получения необходимо использовать предмет %d", p.stepsCount, item, item-1)
+			return true, false, fmt.Sprintf("Сделано ходов: %d, Найден предмет %d. Для его получения необходимо использовать предмет %d. %s", p.stepsCount, item, item-1, tip)
 		}
 	}
 	if itemFound {
@@ -86,10 +91,24 @@ func (p *Param) update(newState int) (bool, bool, string) { // correct, finished
 			p.started = false
 			return true, true, fmt.Sprintf("Поздравляем, вы выбрались за %d ходов", p.stepsCount)
 		} else {
-			return true, false, fmt.Sprintf("Сделано ходов: %d, Найден выход, для открытия которого нужно использовать предмет %d", p.stepsCount, len(p.items))
+			return true, false, fmt.Sprintf("Сделано ходов: %d, Найден выход, для открытия которого нужно использовать предмет %d. %s", p.stepsCount, len(p.items), tip)
 		}
 	}
-	return true, false, fmt.Sprintf("Сделано ходов: %d", p.stepsCount)
+	return true, false, fmt.Sprintf("Сделано ходов: %d. %s", p.stepsCount, tip)
+}
+
+func (p *Param) getTipAboutKillerPresence(distanceToKiller int) string {
+	tip := "Вокруг царит подозрительная тишина..."
+	if p.distanceToKiller >= distanceToKiller {
+		if distanceToKiller >= 1 && distanceToKiller <= 2 {
+			tip = "У меня такое ощущение, что маньяк находится совсем близко за ближайшим поворотом"
+		} else if distanceToKiller >= 3 && distanceToKiller <= 4 {
+			tip = "Что это было? Кажется, маньяк уже близко. Надо торопиться"
+		}
+	} else {
+		tip = "Кажется, маньяк отстал. Но не стоит расслабляться. Нужно продолжать искать выход"
+	}
+	return tip
 }
 
 func (p *Param) randomMove(fromPos int) int {

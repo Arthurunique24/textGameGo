@@ -96,12 +96,12 @@ func CalculateOptimalPath(graph [][]int) []int {
 	fmt.Println()
 
 	for i := 0; i < orderLength-1; i++ {
-		path = append(path, findNearestPath(graph, order[i], order[i+1])...)
+		path = append(path, FindNearestPath(graph, order[i], order[i+1])...)
 	}
 	return path
 }
 
-func findNearestPath(graph [][]int, from int, to int) []int {
+func FindNearestPath(graph [][]int, from int, to int) []int {
 	if from == to {
 		return []int{to}
 	}
