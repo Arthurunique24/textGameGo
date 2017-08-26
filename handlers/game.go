@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"../models"
-	"../server/workers"
+	"github.com/ChernovAndrey/textGameGo/models"
+	"github.com/ChernovAndrey/textGameGo/server/workers"
 )
 
 var wp *workers.Pool = workers.NewPool(5)

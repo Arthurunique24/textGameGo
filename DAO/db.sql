@@ -1,7 +1,7 @@
 CREATE TABLE users (
-    id integer NOT NULL,
-    login character varying(255),
-    password character varying(255)
+	id integer NOT NULL,
+	login character varying(255),
+	password character varying(255)
 );
 
 
@@ -12,11 +12,11 @@ ALTER TABLE users OWNER TO postgres;
 --
 
 CREATE SEQUENCE users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+	START WITH 1
+	INCREMENT BY 1
+	NO MINVALUE
+	NO MAXVALUE
+	CACHE 1;
 
 
 ALTER TABLE users_id_seq OWNER TO postgres;
@@ -40,19 +40,29 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regcl
 --
 
 ALTER TABLE ONLY users
-    ADD CONSTRAINT users_login_key UNIQUE (login);
+	ADD CONSTRAINT users_login_key UNIQUE (login);
 
 
 --
 -- Name: insertdata; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
+CREATE OR REPLACE FUNCTION public.createuserdata()
+  RETURNS trigger
+  LANGUAGE plpgsql
+ AS $function$
+ begin
+ insert into usersData(userId,rating,countGames) values (New.id,0,0) on conflict do nothing;
+ return null;
+ end;
+ $function$;
+
 CREATE TRIGGER insertdata AFTER INSERT ON users FOR EACH ROW EXECUTE PROCEDURE createuserdata();
 
 CREATE TABLE usersdata (
-    userid integer NOT NULL,
-    rating integer,
-    countgames integer
+	userid integer NOT NULL,
+	rating integer,
+	countgames integer
 );
 
 
@@ -63,14 +73,14 @@ ALTER TABLE usersdata OWNER TO postgres;
 --
 
 ALTER TABLE ONLY usersdata
-    ADD CONSTRAINT usersdata_userid_key UNIQUE (userid);
+	ADD CONSTRAINT usersdata_userid_key UNIQUE (userid);
 
 
 
 CREATE TABLE sessions (
-    userid integer,
-    sessionid character varying(255) NOT NULL,
-    createdate timestamp without time zone DEFAULT now()
+	userid integer,
+	sessionid character varying(255) NOT NULL,
+	createdate timestamp without time zone DEFAULT now()
 );
 
 
@@ -81,7 +91,7 @@ ALTER TABLE sessions OWNER TO postgres;
 --
 
 ALTER TABLE ONLY sessions
-    ADD CONSTRAINT sessions_sessionid_key UNIQUE (sessionid);
+	ADD CONSTRAINT sessions_sessionid_key UNIQUE (sessionid);
 
 
 --
@@ -89,6 +99,4 @@ ALTER TABLE ONLY sessions
 --
 
 ALTER TABLE ONLY sessions
-    ADD CONSTRAINT sessions_userid_key UNIQUE (userid);
-
-
+	ADD CONSTRAINT sessions_userid_key UNIQUE (userid);

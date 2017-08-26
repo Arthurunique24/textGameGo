@@ -1,4 +1,4 @@
 ---
     db_user: "postgres"
-    db_password: "7680928160"
+    db_password: "1234"
     db_name: "textgame"

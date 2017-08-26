@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"../models"
+
+	"github.com/ChernovAndrey/textGameGo/models"
 )
 
 func CheckSessionId(rw http.ResponseWriter, req *http.Request) {

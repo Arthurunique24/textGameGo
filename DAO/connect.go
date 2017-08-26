@@ -3,35 +3,31 @@ package DAO
 import (
 	"database/sql"
 	"fmt"
-	"path/filepath"
 	"io/ioutil"
-	"gopkg.in/yaml.v2"
+	"path/filepath"
+
 	_ "github.com/lib/pq"
+	yaml "gopkg.in/yaml.v2"
 )
 
-/*const (
-	DB_USER     = "postgres"
-	DB_PASSWORD = "1234"
-	DB_NAME     = "textgame"
-)*/
 type ConfigParameter struct {
 	DB_USER     string
 	DB_PASSWORD string
 	DB_NAME     string
-
 }
+
 var config ConfigParameter
 
 func init() {
 	filename, _ := filepath.Abs("./config/database.yml")
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Println("config DB",err)
+		fmt.Println("config DB", err)
 	}
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
-		fmt.Println("config DB",err)
-		}
+		fmt.Println("config DB", err)
+	}
 }
 
 var db *sql.DB

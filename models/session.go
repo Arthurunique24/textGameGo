@@ -1,12 +1,13 @@
 package models
 
 import (
-	"io"
 	"fmt"
-	"../DAO"
+	"io"
+
+	"github.com/ChernovAndrey/textGameGo/DAO"
 )
 
-func CheckSessionId(body io.ReadCloser) (bool){
+func CheckSessionId(body io.ReadCloser) bool {
 	fmt.Println("alp")
 	var id = new(SessionId)
 	err := Parse(id, body)

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"../DAO"
 
+	"github.com/ChernovAndrey/textGameGo/DAO"
 )
 
 type User struct {
@@ -14,7 +14,6 @@ type User struct {
 }
 
 func (u *User) Insert(body io.ReadCloser) int {
-	//err:=u.Parse(body)
 	err := Parse(u, body)
 	if err != nil {
 		fmt.Println("parse json fail", err) //err
