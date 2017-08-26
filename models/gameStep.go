@@ -19,6 +19,7 @@ func GameStep(body io.ReadCloser) (Answer, error) {
 		return Answer{}, errors.New("not Authorized")
 	}
 	correct, finished, message, steps := p.turn(req.Step)
+	message = fmt.Sprintf("Ты в %d. %s", p.curPos+1, message)
 	fmt.Println("correct", correct)
 	fmt.Printf("Положение маньяка - %d\n", p.killerPos+1)
 	if finished == true {
@@ -114,6 +115,14 @@ func (p *Param) getTipAboutKillerPresence() string {
 
 func (p *Param) randomMove(fromPos int) int {
 	possibleStates := p.answer(fromPos)
-	i := rand.Intn(len(possibleStates))
-	return possibleStates[i] - 1
+	filteredStates := make([]int, len(possibleStates)-1) // Маньяк не может стоять на месте
+	j := 0
+	for i := 0; i < len(possibleStates); i++ {
+		if possibleStates[i] != fromPos+1 {
+			filteredStates[j] = possibleStates[i]
+			j++
+		}
+	}
+	i := rand.Intn(len(filteredStates))
+	return filteredStates[i] - 1
 }

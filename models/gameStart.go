@@ -47,13 +47,13 @@ func GameStart(body io.ReadCloser) (Answer, error) {
 	mu.Lock()
 	params[session.Id] = p
 	defer mu.Unlock()
-	return Answer{Id: session.Id, PossibleSteps: p.answer(p.curPos), Message: fmt.Sprintf("Игра началась. Попробуй выбраться за %d шагов", p.minimalStepsCount)}, nil
+	return Answer{Id: session.Id, PossibleSteps: p.answer(p.curPos), Message: fmt.Sprintf("Игра началась. Попробуй выбраться за %d шагов. Ты в %d", p.minimalStepsCount, p.curPos+1)}, nil
 }
 
 func (p *Param) answer(fromPos int) []int {
 	var states []int
 	for j := 0; j < mapSize; j++ {
-		if p.gameMap[fromPos][j] == 1 && fromPos != j {
+		if p.gameMap[fromPos][j] == 1 || fromPos == j {
 			states = append(states, j+1)
 		}
 	}
