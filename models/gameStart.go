@@ -11,7 +11,7 @@ import (
 	"github.com/ChernovAndrey/textGameGo/models/graph"
 )
 
-const mapSize = 20
+const mapSize = 10
 
 var (
 	mu     sync.Mutex
