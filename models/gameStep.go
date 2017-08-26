@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 )
 
 func GameStep(body io.ReadCloser) (Answer, error) {
@@ -17,6 +18,7 @@ func GameStep(body io.ReadCloser) (Answer, error) {
 	}
 	correct, finished, message, steps := p.turn(req.Step)
 	fmt.Println("correct", correct)
+	fmt.Printf("Положение маньяка - %d\n", p.killerPos+1)
 	if finished == true {
 		delete(params, req.Id)
 	} else {
@@ -30,17 +32,17 @@ func GameStep(body io.ReadCloser) (Answer, error) {
 func (p *Param) turn(newState int) (bool, bool, string, []int) {
 	log.Printf("Попытка хода в %d", newState)
 	if newState < 1 || newState > len(p.gameMap) {
-		return false, false, "Некорректный ход", p.answer()
+		return false, false, "Некорректный ход", p.answer(p.curPos)
 	}
 	if !p.started {
 		return false, false, "Игра не началась", []int{}
 	}
 	correct, finished, message := p.update(newState)
-	return correct, finished, message, p.answer()
+	return correct, finished, message, p.answer(p.curPos)
 }
 
 func (p *Param) update(newState int) (bool, bool, string) { // correct, finished, message
-	possibleStates := p.answer()
+	possibleStates := p.answer(p.curPos)
 	correct := false
 	for i := 0; i < len(possibleStates) && !correct; i++ {
 		correct = possibleStates[i] == newState
@@ -49,7 +51,16 @@ func (p *Param) update(newState int) (bool, bool, string) { // correct, finished
 		return false, false, "Некорректный ход"
 	}
 	p.stepsCount++
+	nextKillerPos := p.randomMove(p.killerPos)
+	fmt.Printf("Следующее положение маньяка - %d\n", nextKillerPos+1)
+	if p.killerPos == newState-1 && nextKillerPos == p.curPos {
+		return true, true, fmt.Sprintf("Сделано ходов: %d, К сожалению, вас нашёл маньяк. Игра окончена", p.stepsCount)
+	}
+	p.killerPos = nextKillerPos
 	p.curPos = newState - 1
+	if p.killerPos == p.curPos {
+		return true, true, fmt.Sprintf("Сделано ходов: %d, К сожалению, вас нашёл маньяк. Игра окончена", p.stepsCount)
+	}
 	item := p.gameMap[p.curPos][p.curPos]
 	itemFound := false
 	message := ""
@@ -79,4 +90,10 @@ func (p *Param) update(newState int) (bool, bool, string) { // correct, finished
 		}
 	}
 	return true, false, fmt.Sprintf("Сделано ходов: %d", p.stepsCount)
+}
+
+func (p *Param) randomMove(fromPos int) int {
+	possibleStates := p.answer(fromPos)
+	i := rand.Intn(len(possibleStates))
+	return possibleStates[i] - 1
 }

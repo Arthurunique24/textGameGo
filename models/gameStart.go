@@ -11,7 +11,7 @@ import (
 	"github.com/ChernovAndrey/textGameGo/models/graph"
 )
 
-const mapSize = 11
+const mapSize = 10
 
 var (
 	mu     sync.Mutex
@@ -27,6 +27,7 @@ type Param struct {
 	stepsCount        int
 	started           bool
 	minimalStepsCount int
+	killerPos         int
 }
 
 func GameStart(body io.ReadCloser) (Answer, error) {
@@ -39,23 +40,23 @@ func GameStart(body io.ReadCloser) (Answer, error) {
 	p := params[session.Id]
 	if p != nil && p.started {
 		fmt.Println("game already started")
-		return Answer{Id: session.Id, PossibleSteps: p.answer(), Message: "Игра уже началась"}, nil
+		return Answer{Id: session.Id, PossibleSteps: p.answer(p.curPos), Message: "Игра уже началась"}, nil
 	}
 	p = NewParam()
 	mu.Lock()
 	params[session.Id] = p
 	defer mu.Unlock()
-	return Answer{Id: session.Id, PossibleSteps: p.answer(), Message: fmt.Sprintf("Игра началась. Попробуй выбраться за %d шагов", p.minimalStepsCount)}, nil
+	return Answer{Id: session.Id, PossibleSteps: p.answer(p.curPos), Message: fmt.Sprintf("Игра началась. Попробуй выбраться за %d шагов", p.minimalStepsCount)}, nil
 }
 
-func (p *Param) answer() []int {
+func (p *Param) answer(fromPos int) []int {
 	var states []int
 	for j := 0; j < mapSize; j++ {
-		if p.gameMap[p.curPos][j] == 1 && p.curPos != j {
+		if p.gameMap[fromPos][j] == 1 && fromPos != j {
 			states = append(states, j+1)
 		}
 	}
-	log.Printf("Возможные переходы: %v\n", states)
+	log.Printf("Возможные переходы из позиции %d: %v\n", fromPos+1, states)
 
 	return states
 }
@@ -101,6 +102,9 @@ func NewParam() *Param {
 		fmt.Printf("%d ", optimalPath[i]+1)
 	}
 	fmt.Println("")
+
+	p.killerPos = items[0] - 1
+	fmt.Printf("Положение маньяка - %d\n", p.killerPos+1)
 
 	return p
 }
