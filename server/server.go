@@ -71,6 +71,7 @@ func (session *gameSession) parse(body io.ReadCloser) error {
 }*/
 
 func RunHTTPServer(addr string) error {
+	http.HandleFunc("/checkId", handlers.CheckSessionId)
 	http.HandleFunc("/updateUData", handlers.UpdateUsersData)
 	http.HandleFunc("/signup", handlers.SignUp)
 	http.HandleFunc("/signin", handlers.SignIn)
