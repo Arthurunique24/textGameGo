@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -36,8 +37,8 @@ func placeItems(graph *[][]int, placedStates *[]int, startState int) []int {
 	return items
 }
 
-func getFarestState(gameMap [][]int, excl []int, firstState int) int {
-	statesCount := len(gameMap)
+func getFarestState(graph [][]int, excl []int, firstState int) int {
+	statesCount := len(graph)
 	q := []int{firstState}
 	qStart := 0
 	distances := make([]int, statesCount)
@@ -55,7 +56,7 @@ func getFarestState(gameMap [][]int, excl []int, firstState int) int {
 		}
 		qStart++
 		for j := 0; j < statesCount; j++ {
-			if distances[j] == -1 && gameMap[s][j] == 1 {
+			if distances[j] == -1 && graph[s][j] == 1 {
 				q = append(q, j)
 				distances[j] = distances[s] + 1
 			}
@@ -63,6 +64,81 @@ func getFarestState(gameMap [][]int, excl []int, firstState int) int {
 	}
 	log.Printf("Список уже посещённых - %v. Следующее самое удалённое состояние - %d\n", excl, idxMax+1)
 	return idxMax
+}
+
+func CalculateOptimalPath(graph [][]int) []int {
+	var startPos, endPos int
+	statesCount := len(graph)
+	itemsCount := 0
+	for i := 0; i < statesCount; i++ {
+		if graph[i][i] == StartStateFlag {
+			startPos = i
+		} else if graph[i][i] == EndStateFlag {
+			endPos = i
+		} else if graph[i][i] > 0 {
+			itemsCount++
+		}
+	}
+	path := []int{startPos}
+	order := make([]int, 2+itemsCount)
+	orderLength := len(order)
+	order[0] = startPos
+	order[orderLength-1] = endPos
+	for i := 0; i < statesCount; i++ {
+		if graph[i][i] > 0 {
+			order[graph[i][i]] = i
+		}
+	}
+	fmt.Printf("Порядок обхода: ")
+	for i := 0; i < orderLength; i++ {
+		fmt.Printf("%d ", order[i]+1)
+	}
+	fmt.Println()
+
+	for i := 0; i < orderLength-1; i++ {
+		path = append(path, findNearestPath(graph, order[i], order[i+1])...)
+	}
+	return path
+}
+
+func findNearestPath(graph [][]int, from int, to int) []int {
+	if from == to {
+		return []int{to}
+	}
+	statesCount := len(graph)
+	q := []int{from}
+	qStart := 0
+	distances := make([]int, statesCount)
+	prev := make([]int, statesCount)
+	for j := 0; j < statesCount; j++ {
+		distances[j] = -1
+	}
+	distances[q[0]] = 0
+	for qStart < len(q) {
+		s := q[qStart]
+		qStart++
+		for j := 0; j < statesCount; j++ {
+			if distances[j] == -1 && graph[s][j] == 1 {
+				q = append(q, j)
+				distances[j] = distances[s] + 1
+				prev[j] = s
+			}
+		}
+	}
+	path := make([]int, distances[to])
+	i := to
+	j := 1
+	for j <= distances[to] {
+		path[distances[to]-j] = i
+		j++
+		i = prev[i]
+	}
+	fmt.Printf("Оптимальный путь между позициями %d и %d - %d ", from+1, to+1, from+1)
+	for i := 0; i < distances[to]; i++ {
+		fmt.Printf("%d ", path[i]+1)
+	}
+	fmt.Println()
+	return path
 }
 
 func GenerateGraphWithPlacedItems(statesCount int) [][]int {

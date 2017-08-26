@@ -7,8 +7,8 @@ import (
 	"log"
 	"sync"
 
-	"../DAO"
-	"github.com/ChernovAndrey/textGameGo/game/graph"
+	"github.com/ChernovAndrey/textGameGo/DAO"
+	"github.com/ChernovAndrey/textGameGo/models/graph"
 )
 
 const mapSize = 11
@@ -19,13 +19,14 @@ var (
 )
 
 type Param struct {
-	items      []int
-	curPos     int
-	gameMap    [][]int
-	startPos   int
-	endPos     int
-	stepsCount int
-	started    bool
+	items             []int
+	curPos            int
+	gameMap           [][]int
+	startPos          int
+	endPos            int
+	stepsCount        int
+	started           bool
+	minimalStepsCount int
 }
 
 func GameStart(body io.ReadCloser) (Answer, error) {
@@ -44,7 +45,7 @@ func GameStart(body io.ReadCloser) (Answer, error) {
 	mu.Lock()
 	params[session.Id] = p
 	defer mu.Unlock()
-	return Answer{Id: session.Id, PossibleSteps: p.answer(), Message: "Игра началась"}, nil
+	return Answer{Id: session.Id, PossibleSteps: p.answer(), Message: fmt.Sprintf("Игра началась. Попробуй выбраться за %d шагов", p.minimalStepsCount)}, nil
 }
 
 func (p *Param) answer() []int {
@@ -77,20 +78,29 @@ func NewParam() *Param {
 		}
 	}
 	p.items = make([]int, itemsCount)
+	items := make([]int, itemsCount)
 	for i := 0; i < mapSize; i++ {
 		if p.gameMap[i][i] == graph.StartStateFlag {
 			p.startPos = i
 		} else if p.gameMap[i][i] == graph.EndStateFlag {
 			p.endPos = i
 		} else if p.gameMap[i][i] > 0 {
-			p.items[p.gameMap[i][i]-1] = i + 1
+			items[p.gameMap[i][i]-1] = i + 1
 		}
 	}
-	fmt.Printf("Положение предметов: %v, начальная позиция: %d, конечная позиция; %d\n", p.items, p.startPos+1, p.endPos+1)
+	fmt.Printf("Положение предметов: %v, начальная позиция: %d, конечная позиция; %d\n", items, p.startPos+1, p.endPos+1)
 
 	p.stepsCount = 0
 	p.started = true
 	p.curPos = p.startPos
+
+	optimalPath := graph.CalculateOptimalPath(p.gameMap)
+	p.minimalStepsCount = len(optimalPath) - 1
+	fmt.Println("Оптимальный маршрут")
+	for i := 0; i < len(optimalPath); i++ {
+		fmt.Printf("%d ", optimalPath[i]+1)
+	}
+	fmt.Println("")
 
 	return p
 }

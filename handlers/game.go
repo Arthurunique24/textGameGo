@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
 	"../models"
 	"../server/workers"
 )
@@ -21,6 +22,7 @@ const requestWaitInQueueTimeout = time.Second
 func Start(rw http.ResponseWriter, req *http.Request) {
 	_, err := wp.AddTaskSyncTimed(func() interface{} {
 		res, err := models.GameStart(req.Body)
+		fmt.Printf("Ответ: %v\n", res)
 		if err != nil {
 			fmt.Println(err)
 			rw.WriteHeader(http.StatusNotFound)
@@ -49,6 +51,7 @@ func Step(rw http.ResponseWriter, req *http.Request) {
 			rw.WriteHeader(http.StatusBadRequest)
 			return err
 		}
+		fmt.Printf("Ответ: %v\n", res)
 		rw.WriteHeader(http.StatusOK)
 		rw.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(rw).Encode(res)
